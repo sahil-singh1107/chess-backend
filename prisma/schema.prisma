@@ -24,7 +24,8 @@ model Game {
 model GameMove {
   id Int @id @default(autoincrement())
   gameId Int 
-  moves String[]
+  from String
+  to String
   game Game @relation(fields: [gameId],references: [id])
   @@index([gameId])
 }
