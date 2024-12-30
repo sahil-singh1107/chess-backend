@@ -44,20 +44,22 @@ class Game {
                     winner: this.gameBoard.turn() === "w" ? "black" : "white"
                 }
             }));
+            this.player2.send(JSON.stringify({
+                type: messages_1.GAME_OVER,
+                payload: {
+                    winner: this.gameBoard.turn() === "w" ? "black" : "white"
+                }
+            }));
             return;
         }
-        if (this.movesCount % 2 === 0) {
-            this.player2.send(JSON.stringify({
-                type: messages_1.MOVE,
-                payload: move
-            }));
-        }
-        else {
-            this.player1.send(JSON.stringify({
-                type: messages_1.MOVE,
-                payload: move
-            }));
-        }
+        this.player2.send(JSON.stringify({
+            type: messages_1.MOVE,
+            payload: move
+        }));
+        this.player1.send(JSON.stringify({
+            type: messages_1.MOVE,
+            payload: move
+        }));
     }
 }
 exports.Game = Game;

@@ -7,7 +7,7 @@ export class Game {
     public player2: WebSocket;
     private gameBoard: Chess;
     private startTime: Date;
-    private movesCount : number
+    private movesCount: number
 
     constructor(player1: WebSocket, player2: WebSocket) {
         this.player1 = player1;
@@ -16,24 +16,24 @@ export class Game {
         this.gameBoard = new Chess();
         this.startTime = new Date();
         this.player1.send(JSON.stringify({
-            type : INIT_GAME,
-            payload : {
-                color : "white"
+            type: INIT_GAME,
+            payload: {
+                color: "white"
             }
         }))
         this.player2.send(JSON.stringify({
-            type : INIT_GAME,
-            payload : {
-                color : "black"
+            type: INIT_GAME,
+            payload: {
+                color: "black"
             }
         }))
     }
 
     makeMove(socket: WebSocket, move: { from: string, to: string }) {
 
-        if (this.movesCount % 2===0 && socket!==this.player1) return;
-        if (this.movesCount % 2 && socket!==this.player2) return;
- 
+        if (this.movesCount % 2 === 0 && socket !== this.player1) return;
+        if (this.movesCount % 2 && socket !== this.player2) return;
+
         try {
             this.gameBoard.move(move)
             console.log(this.gameBoard.ascii());
@@ -50,20 +50,26 @@ export class Game {
                     winner: this.gameBoard.turn() === "w" ? "black" : "white"
                 }
             }))
+            this.player2.send(JSON.stringify({
+                type: GAME_OVER,
+                payload: {
+                    winner: this.gameBoard.turn() === "w" ? "black" : "white"
+                }
+            }))
+            
             return;
         }
 
-        if (this.movesCount % 2 === 0) {
-            this.player2.send(JSON.stringify({
-                type: MOVE,
-                payload: move
-            }))
-        } else {
-            this.player1.send(JSON.stringify({
-                type: MOVE,
-                payload: move
-            }))
-        }
+
+        this.player2.send(JSON.stringify({
+            type: MOVE,
+            payload: move
+        }))
+
+        this.player1.send(JSON.stringify({
+            type: MOVE,
+            payload: move
+        }))
 
     }
 }
