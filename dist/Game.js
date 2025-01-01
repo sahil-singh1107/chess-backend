@@ -116,5 +116,16 @@ class Game {
             payload: move
         }));
     }
+    sendMessage(message) {
+        console.log(message);
+        this.player1.send(JSON.stringify({
+            type: messages_1.MESSAGE,
+            payload: message
+        }));
+        this.player2.send(JSON.stringify({
+            type: messages_1.MESSAGE,
+            payload: message
+        }));
+    }
 }
 exports.Game = Game;

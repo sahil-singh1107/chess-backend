@@ -3,7 +3,6 @@ import { Chess } from "chess.js";
 import { GAME_OVER, INIT_GAME, MESSAGE, MOVE } from "./messages";
 import { v4 as uuidv4 } from 'uuid';
 import { PrismaClient } from "@prisma/client";
-import { runInThisContext } from "vm";
 const prisma = new PrismaClient();
 
 export class Game {
@@ -105,8 +104,6 @@ export class Game {
 
             return;
         }
-
-
         this.player2.send(JSON.stringify({
             type: MOVE,
             payload: move
@@ -120,6 +117,8 @@ export class Game {
     }
 
     sendMessage (message : string) {
+
+        console.log(message);
 
         this.player1.send(JSON.stringify({
             type : MESSAGE,
