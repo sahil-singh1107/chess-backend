@@ -9,33 +9,37 @@ class GameManager {
         this.pendingUser = null;
         this.users = [];
     }
-    addUser(socket) {
-        this.users.push(socket);
-        this.addHandler(socket);
+    addUser(socket, name) {
+        const user = {
+            userWebsocket: socket,
+            userName: name
+        };
+        this.users.push(user);
+        this.addHandler(user);
     }
     removerUser(socket) {
-        this.users = this.users.filter(user => user !== socket);
+        this.users = this.users.filter(user => user.userWebsocket !== socket);
     }
-    addHandler(socket) {
-        socket.on("message", (data) => {
+    addHandler(user) {
+        user.userWebsocket.on("message", (data) => {
             const message = JSON.parse(data.toString());
             if (message.type === messages_1.INIT_GAME) {
                 if (this.pendingUser) {
-                    const game = new Game_1.Game(this.pendingUser, socket);
+                    const game = new Game_1.Game(this.pendingUser, user);
                     this.games.push(game);
                 }
                 else {
-                    this.pendingUser = socket;
+                    this.pendingUser = user;
                 }
             }
             if (message.type === messages_1.MOVE) {
-                const game = this.games.find(game => game.player1 === socket || game.player2 === socket);
+                const game = this.games.find(game => game.player1.userWebsocket === user.userWebsocket || game.player2.userWebsocket === user.userWebsocket);
                 if (game) {
-                    game.makeMove(socket, message.move);
+                    game.makeMove(user.userWebsocket, message.move);
                 }
             }
             if (message.type === messages_1.MESSAGE) {
-                const game = this.games.find(game => game.player1 === socket || game.player2 === socket);
+                const game = this.games.find(game => game.player1.userWebsocket === user.userWebsocket || game.player2.userWebsocket === user.userWebsocket);
                 if (game) {
                     game.sendMessage(message.data);
                 }

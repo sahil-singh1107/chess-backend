@@ -5,32 +5,33 @@ import { v4 as uuidv4 } from 'uuid';
 import { PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
 
+interface User {
+    userWebsocket : WebSocket;
+    userName: string
+}
+
 export class Game {
-    public player1: WebSocket;
-    public player2: WebSocket;
-    private player1Id: string;
-    private player2Id: string;
+    public player1: User;
+    public player2: User;
     private gameId: number;
     private gameBoard: Chess;
     private startTime: Date;
     private movesCount: number
 
-    constructor(player1: WebSocket, player2: WebSocket) {
+    constructor(player1: User, player2: User) {
         this.player1 = player1;
         this.player2 = player2;
-        this.player1Id = uuidv4();
-        this.player2Id = uuidv4();
         this.movesCount = 0;
         this.gameBoard = new Chess();
         this.startTime = new Date();
         this.gameId = 0;
-        this.player1.send(JSON.stringify({
+        this.player1.userWebsocket.send(JSON.stringify({
             type: INIT_GAME,
             payload: {
                 color: "white"
             }
         }))
-        this.player2.send(JSON.stringify({
+        this.player2.userWebsocket.send(JSON.stringify({
             type: INIT_GAME,
             payload: {
                 color: "black"
@@ -43,8 +44,8 @@ export class Game {
         try {
             const game = await prisma.game.create({
                 data: {
-                    player1: this.player1Id,
-                    player2: this.player2Id,
+                    player1: this.player1.userName,
+                    player2: this.player2.userName,
                 },
             });
             this.gameId = game.id;
@@ -75,8 +76,8 @@ export class Game {
 
     makeMove(socket: WebSocket, move: { from: string, to: string }) {
 
-        if (this.movesCount % 2 === 0 && socket !== this.player1) return;
-        if (this.movesCount % 2 && socket !== this.player2) return;
+        if (this.movesCount % 2 === 0 && socket !== this.player1.userWebsocket) return;
+        if (this.movesCount % 2 && socket !== this.player2.userWebsocket) return;
 
         try {
             this.gameBoard.move(move)
@@ -89,13 +90,13 @@ export class Game {
         }
 
         if (this.gameBoard.isGameOver()) {
-            this.player1.send(JSON.stringify({
+            this.player1.userWebsocket.send(JSON.stringify({
                 type: GAME_OVER,
                 payload: {
                     winner: this.gameBoard.turn() === "w" ? "black" : "white"
                 }
             }))
-            this.player2.send(JSON.stringify({
+            this.player2.userWebsocket.send(JSON.stringify({
                 type: GAME_OVER,
                 payload: {
                     winner: this.gameBoard.turn() === "w" ? "black" : "white"
@@ -104,12 +105,12 @@ export class Game {
 
             return;
         }
-        this.player2.send(JSON.stringify({
+        this.player2.userWebsocket.send(JSON.stringify({
             type: MOVE,
             payload: move
         }))
 
-        this.player1.send(JSON.stringify({
+        this.player1.userWebsocket.send(JSON.stringify({
             type: MOVE,
             payload: move
         }))
@@ -120,16 +121,15 @@ export class Game {
 
         console.log(message);
 
-        this.player1.send(JSON.stringify({
+        this.player1.userWebsocket.send(JSON.stringify({
             type : MESSAGE,
             payload : message
         }))
 
-        this.player2.send(JSON.stringify({
+        this.player2.userWebsocket.send(JSON.stringify({
             type : MESSAGE,
             payload : message
         }))
 
     }
-
 }

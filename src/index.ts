@@ -85,11 +85,14 @@ app.post("/login", passport.authenticate('local'), (req : any, res : any) => {
 })
 
 wss.on('connection', function connection(ws) {
-
-    gameManager.addUser(ws);
-
-    ws.on("close", () => gameManager.removerUser(ws))
-
+   
+    ws.on("message", (message) => {
+        const data = JSON.parse(message.toString());
+        if (data.type === "name") {
+            gameManager.addUser(ws, data.payload)
+        }
+    })
+    ws.on("close", () => gameManager.removerUser(ws));
 });
 
 app.listen(3000);

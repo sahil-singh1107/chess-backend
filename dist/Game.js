@@ -12,26 +12,23 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.Game = void 0;
 const chess_js_1 = require("chess.js");
 const messages_1 = require("./messages");
-const uuid_1 = require("uuid");
 const client_1 = require("@prisma/client");
 const prisma = new client_1.PrismaClient();
 class Game {
     constructor(player1, player2) {
         this.player1 = player1;
         this.player2 = player2;
-        this.player1Id = (0, uuid_1.v4)();
-        this.player2Id = (0, uuid_1.v4)();
         this.movesCount = 0;
         this.gameBoard = new chess_js_1.Chess();
         this.startTime = new Date();
         this.gameId = 0;
-        this.player1.send(JSON.stringify({
+        this.player1.userWebsocket.send(JSON.stringify({
             type: messages_1.INIT_GAME,
             payload: {
                 color: "white"
             }
         }));
-        this.player2.send(JSON.stringify({
+        this.player2.userWebsocket.send(JSON.stringify({
             type: messages_1.INIT_GAME,
             payload: {
                 color: "black"
@@ -44,8 +41,8 @@ class Game {
             try {
                 const game = yield prisma.game.create({
                     data: {
-                        player1: this.player1Id,
-                        player2: this.player2Id,
+                        player1: this.player1.userName,
+                        player2: this.player2.userName,
                     },
                 });
                 this.gameId = game.id;
@@ -78,9 +75,9 @@ class Game {
         });
     }
     makeMove(socket, move) {
-        if (this.movesCount % 2 === 0 && socket !== this.player1)
+        if (this.movesCount % 2 === 0 && socket !== this.player1.userWebsocket)
             return;
-        if (this.movesCount % 2 && socket !== this.player2)
+        if (this.movesCount % 2 && socket !== this.player2.userWebsocket)
             return;
         try {
             this.gameBoard.move(move);
@@ -93,13 +90,13 @@ class Game {
             return;
         }
         if (this.gameBoard.isGameOver()) {
-            this.player1.send(JSON.stringify({
+            this.player1.userWebsocket.send(JSON.stringify({
                 type: messages_1.GAME_OVER,
                 payload: {
                     winner: this.gameBoard.turn() === "w" ? "black" : "white"
                 }
             }));
-            this.player2.send(JSON.stringify({
+            this.player2.userWebsocket.send(JSON.stringify({
                 type: messages_1.GAME_OVER,
                 payload: {
                     winner: this.gameBoard.turn() === "w" ? "black" : "white"
@@ -107,22 +104,22 @@ class Game {
             }));
             return;
         }
-        this.player2.send(JSON.stringify({
+        this.player2.userWebsocket.send(JSON.stringify({
             type: messages_1.MOVE,
             payload: move
         }));
-        this.player1.send(JSON.stringify({
+        this.player1.userWebsocket.send(JSON.stringify({
             type: messages_1.MOVE,
             payload: move
         }));
     }
     sendMessage(message) {
         console.log(message);
-        this.player1.send(JSON.stringify({
+        this.player1.userWebsocket.send(JSON.stringify({
             type: messages_1.MESSAGE,
             payload: message
         }));
-        this.player2.send(JSON.stringify({
+        this.player2.userWebsocket.send(JSON.stringify({
             type: messages_1.MESSAGE,
             payload: message
         }));
