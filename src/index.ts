@@ -1,35 +1,87 @@
 import { WebSocketServer } from 'ws';
 import { GameManager } from './GameManager';
-import { appendFile } from 'fs';
 const express = require('express')
-var passport = require('passport');
-var LocalStrategy = require('passport-local');
-var crypto = require('crypto');
+const bcrypt = require('bcrypt');
 import { PrismaClient } from "@prisma/client";
 import { NextFunction, Request, Response } from 'express';
+var LocalStrategy = require('passport-local')
+var logger = require('morgan');
+var session = require('express-session');
+
+const passport = require("passport");
 const prisma = new PrismaClient();
 
 const wss = new WebSocketServer({ port: 8080 });
 const app = express();
+var SQLiteStore = require('connect-sqlite3')(session);
+
+app.use(express.json());
+app.use(session({
+    secret: "my-secret",
+    resave: false,
+    saveUninitialized: false
+}));
+app.use(passport.initialize());
+app.use(passport.session());
+
+
+passport.use(new LocalStrategy(async function verify( username : string, password : string, cb : any) {
+    try {
+        const findUser = await prisma.user.findFirst({
+            where: {
+                username: username
+            },
+            select: {
+                username: true,
+                password: true
+            }
+        });
+
+        if (!findUser) {return cb(null, false, {error: "User doesn't exists"})}
+
+        bcrypt.compare(password, findUser.password, function(err : any, result : any) {
+            if (err) return cb(err);
+            if (result) {
+                return cb(null, findUser);
+            }
+            else {
+                return cb(null, false, {error : "Wrong password"})
+            }
+        });
+
+
+    } catch (error) {
+        cb(error);
+    }
+}))
+
+passport.serializeUser(function(user : any, done : any) {
+    done(null, user);
+  });
+  
+  passport.deserializeUser(function(user : any, done : any) {
+    done(null, user);
+  });
 
 const gameManager = new GameManager();
 
-app.post("/signup", function (req : Request, res : Response, next : NextFunction) {
-    var salt = crypto.randomBytes(16);
-    crypto.pbkdf2(req.body.password, salt, 310000, 32, "sha256", async function(err : any, hashedPassword : any) {
-        if (err) return next(err);
+app.post("/signup", function (req: Request, res: Response) {
+    bcrypt.hash(req.body.password, 10, async function (err: any, hash: string) {
         try {
             await prisma.user.create({
                 data: {
                     username: req.body.username,
-                    password: req.body.password
+                    password: hash
                 }
             })
         } catch (error) {
-            next(error);
+            return res.send("Something went wrong");
         }
-        
     })
+})
+
+app.post("/login", passport.authenticate('local'), (req : any, res : any) => {
+    res.send(req.user.username);
 })
 
 wss.on('connection', function connection(ws) {
@@ -39,3 +91,5 @@ wss.on('connection', function connection(ws) {
     ws.on("close", () => gameManager.removerUser(ws))
 
 });
+
+app.listen(3000);

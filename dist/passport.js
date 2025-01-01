@@ -9,27 +9,11 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const ws_1 = require("ws");
-const GameManager_1 = require("./GameManager");
-const express = require('express');
-const bcrypt = require('bcrypt');
-const client_1 = require("@prisma/client");
+var passport = require('passport');
 var LocalStrategy = require('passport-local');
-var logger = require('morgan');
-var session = require('express-session');
-const passport = require("passport");
+const client_1 = require("@prisma/client");
+const bcrypt = require('bcrypt');
 const prisma = new client_1.PrismaClient();
-const wss = new ws_1.WebSocketServer({ port: 8080 });
-const app = express();
-var SQLiteStore = require('connect-sqlite3')(session);
-app.use(express.json());
-app.use(session({
-    secret: "my-secret",
-    resave: false,
-    saveUninitialized: false
-}));
-app.use(passport.initialize());
-app.use(passport.session());
 passport.use(new LocalStrategy(function verify(username, password, cb) {
     return __awaiter(this, void 0, void 0, function* () {
         try {
@@ -61,35 +45,26 @@ passport.use(new LocalStrategy(function verify(username, password, cb) {
         }
     });
 }));
-passport.serializeUser(function (user, done) {
-    done(null, user);
+passport.serializeUser((user, done) => {
+    done(null, user.id);
 });
-passport.deserializeUser(function (user, done) {
-    done(null, user);
-});
-const gameManager = new GameManager_1.GameManager();
-app.post("/signup", function (req, res) {
-    bcrypt.hash(req.body.password, 10, function (err, hash) {
-        return __awaiter(this, void 0, void 0, function* () {
-            try {
-                yield prisma.user.create({
-                    data: {
-                        username: req.body.username,
-                        password: hash
-                    }
-                });
-            }
-            catch (error) {
-                return res.send("Something went wrong");
+passport.deserializeUSer((userId, done) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const findUser = yield prisma.user.findFirst({
+            where: {
+                id: userId
+            },
+            select: {
+                username: true,
+                password: true
             }
         });
-    });
-});
-app.post("/login", passport.authenticate('local'), (req, res) => {
-    res.send(req.user.username);
-});
-wss.on('connection', function connection(ws) {
-    gameManager.addUser(ws);
-    ws.on("close", () => gameManager.removerUser(ws));
-});
-app.listen(3000);
+        if (!findUser) {
+            return done(new Error("User not found"));
+        }
+        done(null, findUser);
+    }
+    catch (error) {
+        return done(error);
+    }
+}));
