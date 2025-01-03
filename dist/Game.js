@@ -101,7 +101,9 @@ class Game {
             this.movesCount++;
         }
         catch (error) {
-            console.log(error);
+            socket.send(JSON.stringify({
+                type: "illegal_move",
+            }));
             return;
         }
         if (this.gameBoard.isGameOver()) {

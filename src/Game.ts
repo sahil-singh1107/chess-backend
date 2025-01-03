@@ -91,7 +91,6 @@ export class Game {
     }
 
     makeMove(socket: WebSocket, move: { from: string, to: string }) {
-
         if (this.movesCount % 2 === 0 && socket !== this.player1.userWebsocket) return;
         if (this.movesCount % 2 && socket !== this.player2.userWebsocket) return;
 
@@ -101,7 +100,9 @@ export class Game {
             this.insertMoves(move.from, move.to);
             this.movesCount++;
         } catch (error) {
-            console.log(error);
+            socket.send(JSON.stringify({
+                type: "illegal_move",
+            }))
             return;
         }
 
