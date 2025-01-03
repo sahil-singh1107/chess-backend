@@ -4,6 +4,7 @@ const express = require('express')
 const bcrypt = require('bcrypt');
 import { PrismaClient } from "@prisma/client";
 import { NextFunction, Request, Response } from 'express';
+var cors = require('cors')
 var LocalStrategy = require('passport-local')
 var logger = require('morgan');
 var session = require('express-session');
@@ -16,6 +17,7 @@ const app = express();
 var SQLiteStore = require('connect-sqlite3')(session);
 
 app.use(express.json());
+app.use(cors());
 app.use(session({
     secret: "my-secret",
     resave: false,

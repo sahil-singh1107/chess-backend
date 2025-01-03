@@ -25,16 +25,31 @@ class Game {
         this.player1.userWebsocket.send(JSON.stringify({
             type: messages_1.INIT_GAME,
             payload: {
-                color: "white"
+                color: "white",
             }
         }));
         this.player2.userWebsocket.send(JSON.stringify({
             type: messages_1.INIT_GAME,
             payload: {
-                color: "black"
+                color: "black",
             }
         }));
+        this.sendUsername();
         this.insertGame();
+    }
+    sendUsername() {
+        this.player1.userWebsocket.send(JSON.stringify({
+            type: "opponent",
+            payload: {
+                opponent: this.player2.userName
+            }
+        }));
+        this.player2.userWebsocket.send(JSON.stringify({
+            type: "opponent",
+            payload: {
+                opponent: this.player1.userName
+            }
+        }));
     }
     insertGame() {
         return __awaiter(this, void 0, void 0, function* () {

@@ -14,6 +14,7 @@ const GameManager_1 = require("./GameManager");
 const express = require('express');
 const bcrypt = require('bcrypt');
 const client_1 = require("@prisma/client");
+var cors = require('cors');
 var LocalStrategy = require('passport-local');
 var logger = require('morgan');
 var session = require('express-session');
@@ -23,6 +24,7 @@ const wss = new ws_1.WebSocketServer({ port: 8080 });
 const app = express();
 var SQLiteStore = require('connect-sqlite3')(session);
 app.use(express.json());
+app.use(cors());
 app.use(session({
     secret: "my-secret",
     resave: false,

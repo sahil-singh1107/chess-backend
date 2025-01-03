@@ -28,16 +28,32 @@ export class Game {
         this.player1.userWebsocket.send(JSON.stringify({
             type: INIT_GAME,
             payload: {
-                color: "white"
+                color: "white",
             }
         }))
         this.player2.userWebsocket.send(JSON.stringify({
             type: INIT_GAME,
             payload: {
-                color: "black"
+                color: "black",
             }
         }))
+        this.sendUsername();
         this.insertGame();
+    }
+
+    private sendUsername () {
+        this.player1.userWebsocket.send(JSON.stringify({
+            type: "opponent",
+            payload: {
+                opponent: this.player2.userName
+            }
+        }))
+        this.player2.userWebsocket.send(JSON.stringify({
+            type: "opponent",
+            payload: {
+                opponent: this.player1.userName
+            }
+        }))
     }
 
     private async insertGame(): Promise<void> {
