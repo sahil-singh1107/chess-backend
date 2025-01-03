@@ -12,10 +12,8 @@ var session = require('express-session');
 const passport = require("passport");
 const prisma = new PrismaClient();
 
-const wss = new WebSocketServer({ port: 8080 });
+const wss = new WebSocketServer({ noServer: true })
 const app = express();
-var SQLiteStore = require('connect-sqlite3')(session);
-
 app.use(express.json());
 app.use(cors());
 app.use(session({
