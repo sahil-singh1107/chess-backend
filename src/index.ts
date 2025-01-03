@@ -3,6 +3,7 @@ import { GameManager } from './GameManager';
 const express = require('express')
 const bcrypt = require('bcrypt');
 import { PrismaClient } from "@prisma/client";
+import { createServer } from 'http';
 import { NextFunction, Request, Response } from 'express';
 var cors = require('cors')
 var LocalStrategy = require('passport-local')
@@ -14,6 +15,7 @@ const prisma = new PrismaClient();
 
 const wss = new WebSocketServer({ noServer: true })
 const app = express();
+const server = createServer(app);
 app.use(express.json());
 app.use(cors());
 app.use(session({
@@ -25,7 +27,7 @@ app.use(passport.initialize());
 app.use(passport.session());
 
 
-passport.use(new LocalStrategy(async function verify( username : string, password : string, cb : any) {
+passport.use(new LocalStrategy(async function verify(username: string, password: string, cb: any) {
     try {
         const findUser = await prisma.user.findFirst({
             where: {
@@ -37,15 +39,15 @@ passport.use(new LocalStrategy(async function verify( username : string, passwor
             }
         });
 
-        if (!findUser) {return cb(null, false, {error: "User doesn't exists"})}
+        if (!findUser) { return cb(null, false, { error: "User doesn't exists" }) }
 
-        bcrypt.compare(password, findUser.password, function(err : any, result : any) {
+        bcrypt.compare(password, findUser.password, function (err: any, result: any) {
             if (err) return cb(err);
             if (result) {
                 return cb(null, findUser);
             }
             else {
-                return cb(null, false, {error : "Wrong password"})
+                return cb(null, false, { error: "Wrong password" })
             }
         });
 
@@ -55,13 +57,13 @@ passport.use(new LocalStrategy(async function verify( username : string, passwor
     }
 }))
 
-passport.serializeUser(function(user : any, done : any) {
+passport.serializeUser(function (user: any, done: any) {
     done(null, user);
-  });
-  
-  passport.deserializeUser(function(user : any, done : any) {
+});
+
+passport.deserializeUser(function (user: any, done: any) {
     done(null, user);
-  });
+});
 
 const gameManager = new GameManager();
 
@@ -80,12 +82,18 @@ app.post("/signup", function (req: Request, res: Response) {
     })
 })
 
-app.post("/login", passport.authenticate('local'), (req : any, res : any) => {
+app.post("/login", passport.authenticate('local'), (req: any, res: any) => {
     res.send(req.user.username);
 })
 
+server.on('upgrade', (request, socket, head) => {
+    wss.handleUpgrade(request, socket, head, (ws) => {
+        wss.emit('connection', ws, request);
+    });
+});
+
 wss.on('connection', function connection(ws) {
-   console.log("socket is alive");
+    console.log("socket is alive");
     ws.on("message", (message) => {
         const data = JSON.parse(message.toString());
         if (data.type === "name") {
