@@ -87,7 +87,7 @@ app.post("/login", passport.authenticate('local'), (req : any, res : any) => {
 })
 
 wss.on('connection', function connection(ws) {
-   
+   console.log("socket is alive");
     ws.on("message", (message) => {
         const data = JSON.parse(message.toString());
         if (data.type === "name") {
