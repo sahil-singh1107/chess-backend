@@ -56,6 +56,12 @@ export class GameManager {
                     game.sendMessage(message.data);
                 }
             }
+            if (message.type==="lost") {
+                const game = this.games.find(game => game.player1.userWebsocket === user.userWebsocket || game.player2.userWebsocket === user.userWebsocket)
+                if (game){
+                    game.sendDefeat(message.payload.lost)
+                }
+            }
         })
     }
 }

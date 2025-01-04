@@ -119,7 +119,6 @@ class Game {
                     winner: this.gameBoard.turn() === "w" ? "black" : "white"
                 }
             }));
-            return;
         }
         this.player2.userWebsocket.send(JSON.stringify({
             type: messages_1.MOVE,
@@ -145,6 +144,20 @@ class Game {
         this.player2.userWebsocket.send(JSON.stringify({
             type: messages_1.MESSAGE,
             payload: message
+        }));
+    }
+    sendDefeat(loser) {
+        this.player1.userWebsocket.send(JSON.stringify({
+            type: messages_1.GAME_OVER,
+            payload: {
+                winner: loser === "white" ? "black" : "white"
+            }
+        }));
+        this.player2.userWebsocket.send(JSON.stringify({
+            type: messages_1.GAME_OVER,
+            payload: {
+                winner: loser === "white" ? "black" : "white"
+            }
         }));
     }
 }
