@@ -123,11 +123,17 @@ class Game {
         }
         this.player2.userWebsocket.send(JSON.stringify({
             type: messages_1.MOVE,
-            payload: move
+            payload: {
+                move: move,
+                turn: this.gameBoard.turn()
+            }
         }));
         this.player1.userWebsocket.send(JSON.stringify({
             type: messages_1.MOVE,
-            payload: move
+            payload: {
+                move: move,
+                turn: this.gameBoard.turn()
+            }
         }));
     }
     sendMessage(message) {

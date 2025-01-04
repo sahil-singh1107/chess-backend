@@ -22,7 +22,6 @@ const passport = require("passport");
 const prisma = new client_1.PrismaClient();
 const wss = new ws_1.WebSocketServer({ port: 8080 });
 const app = express();
-var SQLiteStore = require('connect-sqlite3')(session);
 app.use(express.json());
 app.use(cors());
 app.use(session({
@@ -91,6 +90,7 @@ app.post("/login", passport.authenticate('local'), (req, res) => {
     res.send(req.user.username);
 });
 wss.on('connection', function connection(ws) {
+    console.log("socket is alive");
     ws.on("message", (message) => {
         const data = JSON.parse(message.toString());
         if (data.type === "name") {

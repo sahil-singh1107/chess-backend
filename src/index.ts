@@ -3,7 +3,6 @@ import { GameManager } from './GameManager';
 const express = require('express')
 const bcrypt = require('bcrypt');
 import { PrismaClient } from "@prisma/client";
-import { createServer } from 'http';
 import { NextFunction, Request, Response } from 'express';
 var cors = require('cors')
 var LocalStrategy = require('passport-local')
@@ -13,9 +12,8 @@ var session = require('express-session');
 const passport = require("passport");
 const prisma = new PrismaClient();
 
-const wss = new WebSocketServer({ noServer: true })
+const wss = new WebSocketServer({ port: 8080})
 const app = express();
-const server = createServer(app);
 app.use(express.json());
 app.use(cors());
 app.use(session({
@@ -86,11 +84,6 @@ app.post("/login", passport.authenticate('local'), (req: any, res: any) => {
     res.send(req.user.username);
 })
 
-server.on('upgrade', (request, socket, head) => {
-    wss.handleUpgrade(request, socket, head, (ws) => {
-        wss.emit('connection', ws, request);
-    });
-});
 
 wss.on('connection', function connection(ws) {
     console.log("socket is alive");
