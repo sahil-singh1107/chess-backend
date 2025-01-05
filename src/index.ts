@@ -96,6 +96,13 @@ wss.on('connection', function connection(ws) {
         }
     })
     ws.on("close", () => gameManager.removerUser(ws));
+    ws.on("error", () => {
+        console.log("error");
+    })
 });
+
+wss.on("error", function error() {
+    console.log("error");
+})
 
 app.listen(3000);
