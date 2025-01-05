@@ -11,8 +11,9 @@ var session = require('express-session');
 
 const passport = require("passport");
 const prisma = new PrismaClient();
-
-const wss = new WebSocketServer({ port: 8080})
+const PORT = process.env.PORT
+// @ts-ignore
+const wss = new WebSocketServer({ port: PORT })
 const app = express();
 app.use(express.json());
 app.use(cors());
