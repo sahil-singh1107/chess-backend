@@ -94,8 +94,9 @@ class Game {
             return;
         if (this.movesCount % 2 && socket !== this.player2.userWebsocket)
             return;
+        const movePiece = { from: move.from, to: move.to };
         try {
-            this.gameBoard.move(move);
+            this.gameBoard.move(movePiece);
             console.log(this.gameBoard.ascii());
             this.insertMoves(move.from, move.to);
             this.movesCount++;

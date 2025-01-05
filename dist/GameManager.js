@@ -48,6 +48,7 @@ class GameManager {
                 const game = this.games.find(game => game.player1.userWebsocket === user.userWebsocket || game.player2.userWebsocket === user.userWebsocket);
                 if (game) {
                     game.sendDefeat(message.payload.lost);
+                    this.games = this.games.filter(item => item !== game);
                 }
             }
         });

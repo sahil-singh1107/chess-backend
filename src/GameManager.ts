@@ -38,7 +38,6 @@ export class GameManager {
                 if (this.pendingUser) {
                     const game = new Game(this.pendingUser, user);
                     this.games.push(game);
-                    
                 }
                 else {
                     this.pendingUser = user;
@@ -59,7 +58,8 @@ export class GameManager {
             if (message.type==="lost") {
                 const game = this.games.find(game => game.player1.userWebsocket === user.userWebsocket || game.player2.userWebsocket === user.userWebsocket)
                 if (game){
-                    game.sendDefeat(message.payload.lost)
+                    game.sendDefeat(message.payload.lost);
+                    this.games = this.games.filter(item => item !== game);
                 }
             }
         })

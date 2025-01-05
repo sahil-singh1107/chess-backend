@@ -90,12 +90,12 @@ export class Game {
         }
     }
 
-    makeMove(socket: WebSocket, move: { from: string, to: string }) {
+    makeMove(socket: WebSocket, move: { from: string, to: string, piece : string }) {
         if (this.movesCount % 2 === 0 && socket !== this.player1.userWebsocket) return;
         if (this.movesCount % 2 && socket !== this.player2.userWebsocket) return;
-
+        const movePiece = {from : move.from, to : move.to}
         try {
-            this.gameBoard.move(move)
+            this.gameBoard.move(movePiece)
             console.log(this.gameBoard.ascii());
             this.insertMoves(move.from, move.to);
             this.movesCount++;
@@ -135,7 +135,6 @@ export class Game {
                 turn : this.gameBoard.turn()
             }
         }))
-
     }
 
     sendMessage (message : string) {
