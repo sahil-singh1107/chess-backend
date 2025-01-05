@@ -4,6 +4,7 @@ const express = require('express')
 const bcrypt = require('bcrypt');
 import { PrismaClient } from "@prisma/client";
 import { NextFunction, Request, Response } from 'express';
+require('dotenv').config();
 var cors = require('cors')
 var LocalStrategy = require('passport-local')
 var logger = require('morgan');
@@ -11,7 +12,7 @@ var session = require('express-session');
 
 const passport = require("passport");
 const prisma = new PrismaClient();
-const PORT = process.env.PORT
+const PORT = process.env.PORT;
 // @ts-ignore
 const wss = new WebSocketServer({ port: PORT })
 const app = express();
